@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Board</title>
+    <style>
+        /* CSS styles for displayed words */
+        .word {
+            position: absolute;
+        }
+    </style>
+</head>
+<body>
+    <input type="text" id="word-input" placeholder="Enter a word">
+    <button id="submit-button">Submit</button>
+
+    <!-- Include Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-database.js"></script>
+
+    <!-- Include your Firebase config -->
+    <!-- <script src="firebase-config.js"></script> -->
+
+    <!-- Include your JavaScript file -->
+    <script src="app.js"></script>
+</body>
+</html>
