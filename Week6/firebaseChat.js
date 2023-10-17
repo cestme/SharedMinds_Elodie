@@ -108,7 +108,7 @@ function addDiv(key, data) {
     container.style.width = "256px";
     container.style.height = "256px";
     if (key == name) {
-        container.style.border = "2px solid red";
+        container.style.border = "2px solid yellow";
         myContainer = container;
     }
 
