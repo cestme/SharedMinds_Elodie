@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Three.js & Firebase</title>
+    <style>
+        body { margin: 0; }
+    </style>
+</head>
+<body>
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/110/three.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.3/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.3/firebase-database.js"></script> -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/102/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/p5@1.2.0/lib/p5.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.2/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.2/firebase-database.js"></script>
+    
+
+
+
+
+    <script>
+       
+
+
+        //Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyBfVvxGNT8vrtYs7bAjN-63YXcxVNyS_Hc",
+            authDomain: "hello-5f8d5.firebaseapp.com",
+            databaseURL: "https://hello-5f8d5-default-rtdb.firebaseio.com",
+            projectId: "hello-5f8d5",
+            storageBucket: "hello-5f8d5.appspot.com",
+            messagingSenderId: "96550242411",
+            appId: "1:96550242411:web:1b3325fbbd60b38217492e",
+            measurementId: "G-B0Y3TLLJPH"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // Three.js 
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+        camera.position.z = 5;
+       
+        scene.background = new THREE.Color("#272932")
+       
+        //cube
+        const geometryC = new THREE.BoxGeometry( 1, 1, 1 ); 
+        const materialC = new THREE.MeshPhongMaterial( {color: "white"} ); 
+        const cube = new THREE.Mesh( geometryC, materialC ); 
+        cube.position.set(0,0, 0);
+        scene.add(cube);
+
+        //
+        let light = new THREE.PointLight("#75FBCF");
+        light.position.set(0,0,0);
+
+        let light1 = new THREE.PointLight("white");
+        light1.position.set(0,5,0);
+        //scene.add(light1);
+
+        
+        // 创建一个空数组来存储在页面加载时从 Firebase 获取的球体数据
+        const spheresData = [];
+
+        // 页面加载时从 Firebase 获取球体数据
+        database.ref('spheres').once('value', (snapshot) => {
+            snapshot.forEach((childSnapshot) => {
+                const sphereData = childSnapshot.val();
+                spheresData.push(sphereData);
+            });
+
+            // 在获取完所有数据后，渲染球体
+            renderSpheres();
+        });
+
+        // 渲染所有球体的函数
+        function renderSpheres() {
+            spheresData.forEach((sphereData) => {
+                const geometry = new THREE.SphereGeometry(0.01, 32, 32);
+                const randomColor = sphereData.color;
+                const material = new THREE.MeshBasicMaterial({ color: randomColor });
+                const sphere = new THREE.Mesh(geometry, material);
+                sphere.position.set(sphereData.x, sphereData.y, sphereData.z);
+                scene.add(sphere);
+
+                const light = new THREE.PointLight(randomColor, 0.5, 8);
+                sphere.add(light);
+            });
+        }
+
+
+
+    let geometry = new THREE.SphereGeometry(0.01, 32, 32);
+        
+    document.addEventListener('click', (event) => {
+    const mouse = new THREE.Vector2();
+    const raycaster = new THREE.Raycaster();
+
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
+
+    raycaster.setFromCamera(mouse, camera);
+
+    const intersects = raycaster.intersectObjects(scene.children);
+
+    if (intersects.length === 0) {
+        // 获取点击位置的坐标
+        const clickPosition = new THREE.Vector3();
+        raycaster.ray.at(1, clickPosition);
+        console.log(clickPosition);
+
+        // 创建三维小球并设置坐标
+        const randomColor = getRandomColor();
+        const material = new THREE.MeshBasicMaterial({ color: randomColor });
+        const sphere = new THREE.Mesh(geometry, material);
+        sphere.position.copy(clickPosition);
+        scene.add(sphere);
+
+        const light = new THREE.PointLight(randomColor, 0.5, 8);
+        sphere.add(light);
+
+        // 将小球信息存储在 Firebase 中
+        database.ref('spheres').push({
+            x: clickPosition.x,
+            y: clickPosition.y,
+            z: clickPosition.z,
+            color: randomColor
+        });
+         }
+    });
+
+
+        function getRandomColor() {
+        const color = Math.random() * 0xFFFFFF;
+        const validColor = Math.floor(color).toString(16).padStart(6, '0');
+        return '#' + validColor;
+        }
+
+
+        const animate = () => {
+            cube.rotation.x += 0.01;
+            cube.rotation.y += 0.01;
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera);
+            
+        };
+
+        animate();
+        moveCameraWithMouse();
+        
+        
+        //Mouse
+        var onMouseDownMouseX = 0, onMouseDownMouseY = 0;
+        var onPointerDownPointerX = 0, onPointerDownPointerY = 0;
+        var lon = -90, onMouseDownLon = 0;
+        var lat = 0, onMouseDownLat = 0;
+        var isUserInteracting = false;
+
+
+        function moveCameraWithMouse() {
+            //document.addEventListener('keydown', onDocumentKeyDown, false);
+            document.addEventListener('mousedown', onDocumentMouseDown, false);
+            document.addEventListener('mousemove', onDocumentMouseMove, false);
+            document.addEventListener('mouseup', onDocumentMouseUp, false);
+            document.addEventListener('wheel', onDocumentMouseWheel, false);
+            window.addEventListener('resize', onWindowResize, false);
+            camera.target = new THREE.Vector3(0, 0, 0);
+        }
+
+
+        function onDocumentMouseDown(event) {
+            //hitTest(event.clientX, event.clientY);
+            onPointerDownPointerX = event.clientX;
+            onPointerDownPointerY = event.clientY;
+            onPointerDownLon = lon;
+            onPointerDownLat = lat;
+            isUserInteracting = true;
+        }
+
+        function onDocumentMouseMove(event) {
+            if (isUserInteracting) {
+                lon = (onPointerDownPointerX - event.clientX) * 0.1 + onPointerDownLon;
+                lat = (event.clientY - onPointerDownPointerY) * 0.1 + onPointerDownLat;
+                computeCameraOrientation();
+            }
+        }
+
+        function onDocumentMouseUp(event) {
+            isUserInteracting = false;
+        }
+
+        function onDocumentMouseWheel(event) {
+            camera.fov += event.deltaY * 0.05;
+            camera.updateProjectionMatrix();
+        }
+
+        function computeCameraOrientation() {
+            lat = Math.max(- 30, Math.min(30, lat));  //restrict movement
+            let phi = THREE.Math.degToRad(90 - lat);  //restrict movement
+            let theta = THREE.Math.degToRad(lon);
+            camera.target.x = 100 * Math.sin(phi) * Math.cos(theta);
+            camera.target.y = 100 * Math.cos(phi);
+            camera.target.z = 100 * Math.sin(phi) * Math.sin(theta);
+            camera.lookAt(camera.target);
+        }
+
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            console.log('Resized');
+        }
+
+
+
+    </script>
+</body>
+</html>
