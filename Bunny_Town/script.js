@@ -32,6 +32,13 @@ scene.background = new THREE.Color("lightblue");
 
 const ambientLight = new THREE.AmbientLight("white", 1);
 scene.add(ambientLight);
+const pointLight = new THREE.PointLight( "white", 1, 100 );
+pointLight.position.set( 0, 20, 0 );
+scene.add( pointLight );
+
+const sphereSize = 1;
+const pointLightHelper = new THREE.PointLightHelper( pointLight, sphereSize );
+scene.add( pointLightHelper );
 
 controls = new PointerLockControls( camera, document.body );
 
