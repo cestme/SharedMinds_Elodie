@@ -32,7 +32,7 @@ scene.background = new THREE.Color("lightblue");
 
 const ambientLight = new THREE.AmbientLight("white", 1);
 scene.add(ambientLight);
-const pointLight = new THREE.PointLight( "white", 1, 100 );
+const pointLight = new THREE.PointLight( "#FDD686", 2, 100 );
 pointLight.position.set( 0, 20, 0 );
 scene.add( pointLight );
 
